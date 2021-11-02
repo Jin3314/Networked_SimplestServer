@@ -15,9 +15,13 @@ public class NetworkedServer : MonoBehaviour
     const int socketPort = 5491;
 
     LinkedList<PlayerAccount> playerAccounts;
+
+    string playerAccountFilePath;
     // Start is called before the first frame update
     void Start()
     {
+
+        playerAccountFilePath = Application.dataPath + Path.DirectorySeparatorChar + "PlayerAccountData.txt";
 
         NetworkTransport.Init();
 
@@ -31,8 +35,10 @@ public class NetworkedServer : MonoBehaviour
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
 
         playerAccounts = new LinkedList<PlayerAccount>();
-        //load player account
 
+        
+
+        LoadPlayerAccounts();
     }
 
     // Update is called once per frame
@@ -92,23 +98,23 @@ public class NetworkedServer : MonoBehaviour
             string n = csv[1];
             string p = csv[2];
 
-            bool isUnique = false;
+            bool isUnique = true;
 
             foreach(PlayerAccount pa in playerAccounts)
             {
                 if(pa.name == n)
                 {
-                    isUnique = true;
+                    isUnique = false;
                     break;
                 }
             }
 
-            if(!isUnique)
+            if(isUnique)
             {
                 playerAccounts.AddLast(new PlayerAccount(n, p));
                 SendMessageToClient(ServerToClientSignifiers.LoginResponse + "," + LoginResponses.Success, id);
 
-                //save player account
+                SavePlayerAccounts();
             }
             else
             {
@@ -121,6 +127,7 @@ public class NetworkedServer : MonoBehaviour
             string p = csv[2];
 
             bool hasBeenFound = false;
+         
 
             foreach (PlayerAccount pa in playerAccounts)
             {
@@ -129,10 +136,12 @@ public class NetworkedServer : MonoBehaviour
                     if(pa.password == p)
                     {
                         SendMessageToClient(ServerToClientSignifiers.LoginResponse + "," + LoginResponses.Success, id);
+                    
                     }
                     else
                     {
                         SendMessageToClient(ServerToClientSignifiers.LoginResponse + "," + LoginResponses.FailureIncorrectPassword, id);
+                    
                     }
                     hasBeenFound = true;
                     break;
@@ -147,7 +156,41 @@ public class NetworkedServer : MonoBehaviour
 
     }
 
+    private void SavePlayerAccounts()
+    {
+        StreamWriter sw = new StreamWriter(playerAccountFilePath);
+
+        foreach (PlayerAccount pa in playerAccounts)
+        {
+            sw.WriteLine(pa.name + "," + pa.password);
+        }
+        sw.Close();
+    }
+
+    private void LoadPlayerAccounts()
+    {
+        if(File.Exists(playerAccountFilePath))
+        {
+            StreamReader sr = new StreamReader(playerAccountFilePath);
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                string[] csv = line.Split(',');
+
+                PlayerAccount pa = new PlayerAccount(csv[0], csv[1]);
+                playerAccounts.AddLast(pa);
+            }
+        }
+
+       
+
+       
+    }
+
 }
+
+
 public class PlayerAccount
 {
     public string name, password;
