@@ -17,6 +17,11 @@ public class NetworkedServer : MonoBehaviour
     LinkedList<PlayerAccount> playerAccounts;
 
     string playerAccountFilePath;
+
+    int playerWaitingForMatch = -1;
+
+    LinkedList<GameSession> gameSessions;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -35,6 +40,8 @@ public class NetworkedServer : MonoBehaviour
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
 
         playerAccounts = new LinkedList<PlayerAccount>();
+
+        gameSessions = new LinkedList<GameSession>();
 
         
 
@@ -153,8 +160,40 @@ public class NetworkedServer : MonoBehaviour
             }
 
         }
+        else if (signifier == ClientToServerSignifiers.AddToGameSessionQueue)
+        {
+            if(playerWaitingForMatch == -1)
+            {
+                playerWaitingForMatch = id;
+            }
+            else
+            {
 
-    }
+                GameSession gs = new GameSession(playerWaitingForMatch, id);
+                gameSessions.AddLast(gs);
+
+                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
+                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", playerWaitingForMatch);
+                playerWaitingForMatch = -1;
+            }
+           
+
+        }
+        else if (signifier == ClientToServerSignifiers.TicTacToePlay)
+        {
+           // Debug.Log("our next action item beckons!");
+
+           GameSession gs = FindGameSessionWithPlayerID(id);
+
+            if(gs.playerID1 == id)
+                SendMessageToClient(ServerToClientSignifiers.OpponentTicTacToePlay + "", gs.playerID2);
+            else
+                SendMessageToClient(ServerToClientSignifiers.OpponentTicTacToePlay + "", gs.playerID1);
+
+
+        }
+
+}
 
     private void SavePlayerAccounts()
     {
@@ -188,6 +227,16 @@ public class NetworkedServer : MonoBehaviour
        
     }
 
+    private GameSession FindGameSessionWithPlayerID(int id)
+    {
+        foreach(GameSession gs in gameSessions)
+        {
+            if (gs.playerID1 == id || gs.playerID2 == id)
+                return gs;
+        }
+        return null;
+    }
+
 }
 
 
@@ -202,12 +251,28 @@ public class PlayerAccount
     }
 }
 
+public class GameSession
+{
+    public int playerID1, playerID2;
+
+    public GameSession(int PlayerID1, int PlayerID2)
+    {
+        playerID1 = PlayerID1;
+        playerID2 = PlayerID2;
+    }
+    //hold two clients
+}
+
 
 public static class ClientToServerSignifiers
 {
     public const int Login = 1;
 
     public const int CreateAccount = 2;
+
+    public const int AddToGameSessionQueue = 3;
+
+    public const int TicTacToePlay = 4;
 }
 
 
@@ -215,6 +280,9 @@ public static class ServerToClientSignifiers
 {
     public const int LoginResponse = 1;
 
+    public const int GameSessionStarted = 2;
+
+    public const int OpponentTicTacToePlay = 3;
 }
 
 public static class LoginResponses
