@@ -162,21 +162,31 @@ public class NetworkedServer : MonoBehaviour
         }
         else if (signifier == ClientToServerSignifiers.AddToGameSessionQueue)
         {
-            if(playerWaitingForMatch == -1)
+            if (playerWaitingForMatch == -1)
             {
                 playerWaitingForMatch = id;
             }
             else
             {
-
                 GameSession gs = new GameSession(playerWaitingForMatch, id);
                 gameSessions.AddLast(gs);
 
-                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
-                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", playerWaitingForMatch);
+                int randomNumberForGameSymbol = Random.Range(0, 2);
+
+                string playerWaitingForMatchSymbol = (randomNumberForGameSymbol == 0) ? "X" : "O";
+
+                string currentPlayersSymbol = (playerWaitingForMatchSymbol == "X") ? "O" : "X";
+
+                int playerWaitingForMatchMovesFirst = Random.Range(0, 2);
+
+                int currentPlayersMove = (playerWaitingForMatchMovesFirst == 1) ? 0 : 1;
+
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted.ToString(), playerWaitingForMatchSymbol, playerWaitingForMatchMovesFirst), playerWaitingForMatch);
+
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted, currentPlayersSymbol, currentPlayersMove) + "", id);
+
                 playerWaitingForMatch = -1;
             }
-           
 
         }
         else if (signifier == ClientToServerSignifiers.TicTacToePlay)
@@ -193,8 +203,20 @@ public class NetworkedServer : MonoBehaviour
         
 
         }
+        else if (signifier == ClientToServerSignifiers.AnyMove)
+        {
+            GameSession gs = FindGameSessionWithPlayerID(id);
 
-}
+            if (gs.playerID1 == id)
+            {
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.OpponentChoice.ToString(), csv[1]), gs.playerID2);
+            }
+            else
+            {
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.OpponentChoice.ToString(), csv[1]), gs.playerID1);
+            }
+        }
+    }
 
     private void SavePlayerAccounts()
     {
@@ -274,6 +296,8 @@ public static class ClientToServerSignifiers
     public const int AddToGameSessionQueue = 3;
 
     public const int TicTacToePlay = 4;
+
+    public const int AnyMove = 5;
 }
 
 
@@ -284,6 +308,8 @@ public static class ServerToClientSignifiers
     public const int GameSessionStarted = 2;
 
     public const int OpponentTicTacToePlay = 3;
+
+    public const int OpponentChoice = 4;
 }
 
 public static class LoginResponses
