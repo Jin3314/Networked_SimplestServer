@@ -216,6 +216,33 @@ public class NetworkedServer : MonoBehaviour
                 SendMessageToClient(string.Join(",", ServerToClientSignifiers.OpponentChoice.ToString(), csv[1]), gs.playerID1);
             }
         }
+        else if (signifier == ClientToServerSignifiers.GameOver)
+        {
+            GameSession gs = FindGameSessionWithPlayerID(id);
+
+            if (gs.playerID1 == id)
+            {
+                SendMessageToClient(ServerToClientSignifiers.OpponentWon.ToString() + "," + csv[1], gs.playerID2);
+            }
+            else
+            {
+                SendMessageToClient(ServerToClientSignifiers.OpponentWon.ToString() + "," + csv[1], gs.playerID1);
+            }
+           
+        }
+        else if (signifier == ClientToServerSignifiers.GameDrawn)
+        {
+            GameSession gs = FindGameSessionWithPlayerID(id);
+
+            if (gs.playerID1 == id)
+            {
+                SendMessageToClient(ServerToClientSignifiers.GameDrawn.ToString(), gs.playerID2);
+            }
+            else
+            {
+                SendMessageToClient(ServerToClientSignifiers.GameDrawn.ToString(), gs.playerID1);
+            }
+        }
     }
 
     private void SavePlayerAccounts()
@@ -298,6 +325,10 @@ public static class ClientToServerSignifiers
     public const int TicTacToePlay = 4;
 
     public const int AnyMove = 5;
+
+    public const int GameOver = 6;
+
+    public const int GameDrawn = 7;
 }
 
 
@@ -310,6 +341,10 @@ public static class ServerToClientSignifiers
     public const int OpponentTicTacToePlay = 3;
 
     public const int OpponentChoice = 4;
+
+    public const int OpponentWon = 5;
+
+    public const int GameDrawn = 6;
 }
 
 public static class LoginResponses
