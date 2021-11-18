@@ -97,9 +97,6 @@ public class NetworkedServer : MonoBehaviour
 
         int signifier = int.Parse(csv[0]);
 
-
-
-
         if (signifier == ClientToServerSignifiers.CreateAccount)
         {
             string n = csv[1];
@@ -171,19 +168,19 @@ public class NetworkedServer : MonoBehaviour
                 GameSession gs = new GameSession(playerWaitingForMatch, id);
                 gameSessions.AddLast(gs);
 
-                int randomNumberForGameSymbol = Random.Range(0, 2);
+                int PlayersMark = Random.Range(0, 2);
 
-                string playerWaitingForMatchSymbol = (randomNumberForGameSymbol == 0) ? "X" : "O";
+                string MatchWaitingMark = (PlayersMark == 0) ? "X" : "O";
 
-                string currentPlayersSymbol = (playerWaitingForMatchSymbol == "X") ? "O" : "X";
+                string PlayerMark = (MatchWaitingMark == "X") ? "O" : "X";
 
-                int playerWaitingForMatchMovesFirst = Random.Range(0, 2);
+                int WhosFirst = Random.Range(0, 2);
 
-                int currentPlayersMove = (playerWaitingForMatchMovesFirst == 1) ? 0 : 1;
+                int CurrentTurn = (WhosFirst == 1) ? 0 : 1;
 
-                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted.ToString(), playerWaitingForMatchSymbol, playerWaitingForMatchMovesFirst), playerWaitingForMatch);
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted.ToString(), MatchWaitingMark, WhosFirst), playerWaitingForMatch);
 
-                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted, currentPlayersSymbol, currentPlayersMove) + "", id);
+                SendMessageToClient(string.Join(",", ServerToClientSignifiers.GameSessionStarted, PlayerMark, CurrentTurn) + "", id);
 
                 playerWaitingForMatch = -1;
             }
@@ -191,17 +188,12 @@ public class NetworkedServer : MonoBehaviour
         }
         else if (signifier == ClientToServerSignifiers.TicTacToePlay)
         {
-           // Debug.Log("our next action item beckons!");
-
            GameSession gs = FindGameSessionWithPlayerID(id);
 
             if(gs.playerID1 == id)
                 SendMessageToClient(ServerToClientSignifiers.OpponentTicTacToePlay + "", gs.playerID2);
             else
                 SendMessageToClient(ServerToClientSignifiers.OpponentTicTacToePlay + "", gs.playerID1);
-
-        
-
         }
         else if (signifier == ClientToServerSignifiers.AnyMove)
         {
@@ -228,19 +220,18 @@ public class NetworkedServer : MonoBehaviour
             {
                 SendMessageToClient(ServerToClientSignifiers.OpponentWon.ToString() + "," + csv[1], gs.playerID1);
             }
-           
         }
-        else if (signifier == ClientToServerSignifiers.GameDrawn)
+        else if (signifier == ClientToServerSignifiers.Tie)
         {
             GameSession gs = FindGameSessionWithPlayerID(id);
 
             if (gs.playerID1 == id)
             {
-                SendMessageToClient(ServerToClientSignifiers.GameDrawn.ToString(), gs.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.Tie.ToString(), gs.playerID2);
             }
             else
             {
-                SendMessageToClient(ServerToClientSignifiers.GameDrawn.ToString(), gs.playerID1);
+                SendMessageToClient(ServerToClientSignifiers.Tie.ToString(), gs.playerID1);
             }
         }
     }
@@ -270,11 +261,7 @@ public class NetworkedServer : MonoBehaviour
                 PlayerAccount pa = new PlayerAccount(csv[0], csv[1]);
                 playerAccounts.AddLast(pa);
             }
-        }
-
-       
-
-       
+        } 
     }
 
     private GameSession FindGameSessionWithPlayerID(int id)
@@ -328,7 +315,7 @@ public static class ClientToServerSignifiers
 
     public const int GameOver = 6;
 
-    public const int GameDrawn = 7;
+    public const int Tie = 7;
 }
 
 
@@ -344,7 +331,7 @@ public static class ServerToClientSignifiers
 
     public const int OpponentWon = 5;
 
-    public const int GameDrawn = 6;
+    public const int Tie = 6;
 }
 
 public static class LoginResponses
