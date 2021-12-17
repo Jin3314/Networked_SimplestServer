@@ -22,10 +22,8 @@ public class NetworkedServer : MonoBehaviour
 
     LinkedList<GameSession> gameSessions;
 
-    // Start is called before the first frame update
     void Start()
     {
-
         playerAccountFilePath = Application.dataPath + Path.DirectorySeparatorChar + "PlayerAccountData.txt";
 
         NetworkTransport.Init();
@@ -43,15 +41,11 @@ public class NetworkedServer : MonoBehaviour
 
         gameSessions = new LinkedList<GameSession>();
 
-        
-
         LoadPlayerAccounts();
     }
 
-    // Update is called once per frame
     void Update()
     {
-
         int recHostID;
         int recConnectionID;
         int recChannelID;
@@ -59,7 +53,6 @@ public class NetworkedServer : MonoBehaviour
         int bufferSize = 1024;
         int dataSize;
         byte error = 0;
-
 
         NetworkEventType recNetworkEvent = NetworkTransport.Receive(out recHostID, out recConnectionID, out recChannelID, recBuffer, bufferSize, out dataSize, out error);
 
@@ -78,8 +71,6 @@ public class NetworkedServer : MonoBehaviour
                 Debug.Log("Disconnection, " + recConnectionID);
                 break;
         }
-
-
     }
   
     public void SendMessageToClient(string msg, int id)
@@ -132,7 +123,6 @@ public class NetworkedServer : MonoBehaviour
 
             bool hasBeenFound = false;
          
-
             foreach (PlayerAccount pa in playerAccounts)
             {
                 if (pa.name == n)
@@ -276,7 +266,6 @@ public class NetworkedServer : MonoBehaviour
 
 }
 
-
 public class PlayerAccount
 {
     public string name, password;
@@ -297,7 +286,6 @@ public class GameSession
         playerID1 = PlayerID1;
         playerID2 = PlayerID2;
     }
-    //hold two clients
 }
 
 
